@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ru" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>✦ Астро-бот — Панель управления</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <style>
+    :root {
+      --accent: #9b7fe8;
+      --accent2: #6ec6f5;
+      --bg-card: #131326;
+    }
+
+    body {
+      background: radial-gradient(ellipse at 20% 10%, #1a0a2e 0%, #0a0a1a 60%);
+      min-height: 100vh;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: #d0d0e8;
+    }
+
+    .navbar-brand { font-size: 1.4rem; letter-spacing: .05em; }
+
+    .stars {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 0;
+      background-image:
+        radial-gradient(1px 1px at 10% 20%, #fff 0%, transparent 100%),
+        radial-gradient(1px 1px at 30% 55%, #aac 0%, transparent 100%),
+        radial-gradient(1px 1px at 55% 10%, #cce 0%, transparent 100%),
+        radial-gradient(1px 1px at 80% 70%, #fff 0%, transparent 100%),
+        radial-gradient(1px 1px at 45% 85%, #aac 0%, transparent 100%),
+        radial-gradient(1px 1px at 92% 30%, #fff 0%, transparent 100%),
+        radial-gradient(2px 2px at 65% 45%, #cce 0%, transparent 100%),
+        radial-gradient(1px 1px at 15% 75%, #aac 0%, transparent 100%),
+        radial-gradient(1px 1px at 73% 88%, #fff 0%, transparent 100%),
+        radial-gradient(2px 2px at 5%  50%, #cce 0%, transparent 100%);
+    }
+
+    .content { position: relative; z-index: 1; }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid rgba(155,127,232,.25);
+      border-radius: 16px;
+    }
+
+    .card-header {
+      background: linear-gradient(90deg,rgba(155,127,232,.15),rgba(110,198,245,.1));
+      border-bottom: 1px solid rgba(155,127,232,.2);
+      border-radius: 15px 15px 0 0 !important;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #6a3fc8, #9b7fe8);
+      border: none;
+    }
+    .btn-primary:hover { background: linear-gradient(135deg,#7a4fd8,#ab8ff8); }
+
+    .btn-outline-info { color: var(--accent2); border-color: var(--accent2); }
+    .btn-outline-info:hover { background: rgba(110,198,245,.15); }
+
+    .form-control, .form-select {
+      background: #1a1a30 !important;
+      border-color: rgba(155,127,232,.3) !important;
+      color: #d0d0e8 !important;
+    }
+    .form-control:focus, .form-select:focus {
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 .2rem rgba(155,127,232,.2) !important;
+    }
+    .form-label { color: #a0a0c8; font-size: .9rem; }
+
+    .badge-sign {
+      font-size: .75rem;
+      background: rgba(155,127,232,.2);
+      border: 1px solid rgba(155,127,232,.4);
+      color: var(--accent);
+      padding: .3em .6em;
+      border-radius: 8px;
+    }
+
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      display: inline-block; margin-right: 6px;
+    }
+    .status-ok   { background: #4ade80; box-shadow: 0 0 8px #4ade80; }
+    .status-warn { background: #facc15; box-shadow: 0 0 8px #facc15; }
+
+    #toast-container { position: fixed; top: 1rem; right: 1rem; z-index: 999; }
+
+    .date-badge {
+      background: rgba(110,198,245,.12);
+      border: 1px solid rgba(110,198,245,.3);
+      color: var(--accent2);
+      padding: .25em .7em;
+      border-radius: 8px;
+      font-size: .82rem;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .date-badge:hover { background: rgba(110,198,245,.25); }
+
+    .section-title { color: var(--accent); font-size: .78rem; text-transform: uppercase;
+                     letter-spacing: .1em; margin-bottom: .75rem; }
+  </style>
+</head>
+<body>
+<div class="stars"></div>
+
+<!-- Navbar -->
+<nav class="navbar navbar-dark px-4 py-3" style="background:rgba(10,10,26,.8);border-bottom:1px solid rgba(155,127,232,.2);">
+  <span class="navbar-brand fw-bold">
+    ✦ Астро-бот
+  </span>
+  <span class="text-muted" style="font-size:.85rem;">Панель управления</span>
+</nav>
+
+<!-- Toast -->
+<div id="toast-container"></div>
+
+<div class="content container-fluid py-4 px-3 px-md-5">
+
+  {% if request.args.get('saved') %}
+  <div class="alert alert-success alert-dismissible fade show" role="alert">
+    ✅ Настройки сохранены
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endif %}
+
+  <div class="row g-4">
+
+    <!-- ── Генерация контента ── -->
+    <div class="col-12 col-lg-6">
+      <div class="card h-100">
+        <div class="card-header p-3">
+          <h5 class="mb-0 fw-semibold">🗓 Генерация контента</h5>
+          <small class="text-muted">Создать прогнозы и карточки на диапазон дат</small>
+        </div>
+        <div class="card-body p-4">
+          <div class="row g-3 mb-3">
+            <div class="col">
+              <label class="form-label">Начальная дата</label>
+              <input type="date" id="gen-start" class="form-control" value="{{ today }}" />
+            </div>
+            <div class="col">
+              <label class="form-label">Конечная дата</label>
+              <input type="date" id="gen-end" class="form-control" value="{{ today }}" />
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <p class="section-title">Знаки зодиака</p>
+            <div class="d-flex flex-wrap gap-2">
+              {% set signs = ["Овен","Телец","Близнецы","Рак","Лев","Дева","Весы","Скорпион","Стрелец","Козерог","Водолей","Рыбы"] %}
+              {% set symbols = ["♈","♉","♊","♋","♌","♍","♎","♏","♐","♑","♒","♓"] %}
+              {% for i in range(12) %}
+              <span class="badge-sign">{{ symbols[i] }} {{ signs[i] }}</span>
+              {% endfor %}
+            </div>
+          </div>
+
+          <button class="btn btn-primary w-100 py-2" onclick="generateContent()">
+            ✦ Сгенерировать контент
+          </button>
+
+          <div id="gen-result" class="mt-3"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Скачать архив ── -->
+    <div class="col-12 col-lg-6">
+      <div class="card h-100">
+        <div class="card-header p-3">
+          <h5 class="mb-0 fw-semibold">📦 Скачать архив</h5>
+          <small class="text-muted">ZIP с 12 карточками за выбранный день</small>
+        </div>
+        <div class="card-body p-4">
+          <div class="mb-3">
+            <label class="form-label">Выберите дату</label>
+            <input type="date" id="dl-date" class="form-control" value="{{ today }}" />
+          </div>
+
+          {% if available_dates %}
+          <div class="mb-4">
+            <p class="section-title">Готовые даты</p>
+            <div class="d-flex flex-wrap gap-2">
+              {% for d in available_dates[:12] %}
+              <span class="date-badge" onclick="document.getElementById('dl-date').value='{{ d }}'">{{ d }}</span>
+              {% endfor %}
+            </div>
+          </div>
+          {% else %}
+          <div class="alert alert-secondary py-2 mb-4" style="font-size:.85rem;background:rgba(80,80,120,.2);border-color:rgba(155,127,232,.2);">
+            Нет готовых данных. Сначала сгенерируйте контент.
+          </div>
+          {% endif %}
+
+          <a id="dl-btn" class="btn btn-outline-info w-100 py-2" href="#" onclick="return doDownload()">
+            ⬇ Скачать ZIP
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Настройки автопостинга ── -->
+    <div class="col-12 col-lg-6">
+      <div class="card">
+        <div class="card-header p-3">
+          <h5 class="mb-0 fw-semibold">⚙️ Автопостинг в Telegram</h5>
+          <small class="text-muted">Настройте канал и время публикации</small>
+        </div>
+        <div class="card-body p-4">
+          <form method="POST" action="/settings">
+            <div class="mb-3">
+              <label class="form-label">ID канала или группы</label>
+              <input type="text" name="channel_id" class="form-control"
+                     placeholder="@mychannel или -100123456789"
+                     value="{{ channel_id }}" />
+              <div class="form-text" style="color:#8888aa;">
+                Добавьте бота в канал как администратора с правами публикации
+              </div>
+            </div>
+            <div class="mb-4">
+              <label class="form-label">Время публикации (UTC)</label>
+              <input type="time" name="posting_time" class="form-control"
+                     value="{{ posting_time }}" />
+            </div>
+            <button type="submit" class="btn btn-primary w-100 py-2">
+              💾 Сохранить настройки
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Статус ── -->
+    <div class="col-12 col-lg-6">
+      <div class="card">
+        <div class="card-header p-3">
+          <h5 class="mb-0 fw-semibold">📊 Статус системы</h5>
+        </div>
+        <div class="card-body p-4">
+          <ul class="list-unstyled mb-0" style="font-size:.9rem;">
+            <li class="mb-3">
+              <span class="status-dot status-ok"></span>
+              <b>Flask</b> — работает (порт 8000)
+            </li>
+            <li class="mb-3">
+              <span class="status-dot {% if channel_id %}status-ok{% else %}status-warn{% endif %}"></span>
+              <b>Telegram-канал:</b>
+              {% if channel_id %}{{ channel_id }}{% else %}<span class="text-warning">не настроен</span>{% endif %}
+            </li>
+            <li class="mb-3">
+              <span class="status-dot status-ok"></span>
+              <b>Время рассылки:</b> {{ posting_time }} UTC
+            </li>
+            <li class="mb-3">
+              <span class="status-dot status-ok"></span>
+              <b>Готовых дат:</b> {{ available_dates | length }}
+            </li>
+          </ul>
+
+          <hr style="border-color:rgba(155,127,232,.2);" />
+          <p class="section-title">Команды бота</p>
+          <div class="d-flex flex-wrap gap-2" style="font-size:.82rem;">
+            <code style="background:rgba(155,127,232,.1);padding:.2em .5em;border-radius:6px;">/start</code>
+            <code style="background:rgba(155,127,232,.1);padding:.2em .5em;border-radius:6px;">/today</code>
+            <code style="background:rgba(155,127,232,.1);padding:.2em .5em;border-radius:6px;">/mycard</code>
+            <code style="background:rgba(155,127,232,.1);padding:.2em .5em;border-radius:6px;">/subscribe</code>
+            <code style="background:rgba(155,127,232,.1);padding:.2em .5em;border-radius:6px;">/unsubscribe</code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- row -->
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function showToast(msg, ok=true) {
+  const c = document.getElementById('toast-container');
+  const id = 'toast-' + Date.now();
+  c.insertAdjacentHTML('beforeend', `
+    <div id="${id}" class="toast align-items-center text-bg-${ok?'success':'danger'} border-0 mb-2" role="alert">
+      <div class="d-flex">
+        <div class="toast-body">${msg}</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    </div>`);
+  const t = new bootstrap.Toast(document.getElementById(id), {delay:4000});
+  t.show();
+}
+
+async function generateContent() {
+  const start = document.getElementById('gen-start').value;
+  const end   = document.getElementById('gen-end').value;
+  if (!start || !end) { showToast('Укажите даты', false); return; }
+
+  const btn = event.currentTarget;
+  btn.disabled = true;
+  btn.textContent = '⏳ Генерирую…';
+
+  const res = document.getElementById('gen-result');
+  res.innerHTML = '<div class="text-muted" style="font-size:.85rem;">Это может занять 1–2 минуты для нескольких дней…</div>';
+
+  try {
+    const r = await fetch('/generate', {
+      method: 'POST',
+      headers: {'Content-Type':'application/x-www-form-urlencoded'},
+      body: `start_date=${start}&end_date=${end}`
+    });
+    const data = await r.json();
+    if (data.success) {
+      showToast(data.message);
+      res.innerHTML = `<div class="alert alert-success py-2 mt-2" style="font-size:.85rem;">${data.message}</div>`;
+      setTimeout(()=>location.reload(), 2000);
+    } else {
+      showToast(data.error || 'Ошибка', false);
+      res.innerHTML = `<div class="alert alert-danger py-2 mt-2">${data.error}</div>`;
+    }
+  } catch(e) {
+    showToast('Ошибка сети', false);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✦ Сгенерировать контент';
+  }
+}
+
+function doDownload() {
+  const d = document.getElementById('dl-date').value;
+  if (!d) { showToast('Выберите дату', false); return false; }
+  window.location.href = '/download/' + d;
+  return false;
+}
+</script>
+</body>
+</html>
