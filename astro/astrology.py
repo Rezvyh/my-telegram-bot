@@ -98,6 +98,7 @@ def calculate_natal_chart(
     birth_time: str,
     lat: float,
     lon: float,
+    tz_offset: int = 3,
 ) -> dict:
     """
     Вычислить натальную карту: знак Солнца, Луны, Асцендент.
@@ -110,12 +111,17 @@ def calculate_natal_chart(
         day, month, year = map(int, birth_date.split("."))
         hour, minute = map(int, birth_time.split(":"))
 
+        # Переводим локальное время в UTC
+        from datetime import datetime, timedelta
+        local_dt = datetime(year, month, day, hour, minute)
+        utc_dt = local_dt - timedelta(hours=tz_offset)
+
         obs = ephem.Observer()
         obs.lat  = str(lat)
         obs.lon  = str(lon)
         obs.elev = 0
         obs.pressure = 0
-        obs.date = f"{year}/{month:02d}/{day:02d} {hour:02d}:{minute:02d}:00"
+        obs.date = utc_dt.strftime("%Y/%m/%d %H:%M:%S")
 
         # Знак Солнца
         sun = ephem.Sun(obs)
@@ -127,14 +133,17 @@ def calculate_natal_chart(
         moon_lon = math.degrees(float(moon.hlong))
         moon_sign = _lon_to_sign(moon_lon)
 
-        # Асцендент (знак восходящий на востоке в момент рождения)
-        eps      = math.radians(23.437)          # наклон эклиптики
+        # Асцендент — стандартная формула
+        eps      = math.radians(23.437)
         lat_rad  = math.radians(lat)
-        ramc     = float(obs.sidereal_time())    # местное звёздное время (рад)
+        ramc_deg = math.degrees(float(obs.sidereal_time()))
+        ramc     = math.radians(ramc_deg)
 
-        y = -math.cos(ramc)
-        x = math.sin(eps) * math.tan(lat_rad) + math.cos(eps) * math.sin(ramc)
-        asc_deg = math.degrees(math.atan2(y, x)) % 360
+        asc_rad = math.atan2(
+            -math.cos(ramc),
+            math.sin(ramc) * math.cos(eps) + math.tan(lat_rad) * math.sin(eps)
+        )
+        asc_deg = math.degrees(asc_rad) % 360
         asc_sign = _lon_to_sign(asc_deg)
 
         return {
