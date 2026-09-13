@@ -127,14 +127,16 @@ def calculate_natal_chart(
         obs.pressure = 0
         obs.date = utc_dt.strftime("%Y/%m/%d %H:%M:%S")
 
-        # Знак Солнца
+        # Знак Солнца (эклиптическая долгота!)
         sun = ephem.Sun(obs)
-        sun_lon = math.degrees(float(sun.hlong))
+        sun_ecl = ephem.Ecliptic(sun)
+        sun_lon = math.degrees(float(sun_ecl.lon)) % 360
         sun_sign = _lon_to_sign(sun_lon)
 
-        # Знак Луны
+        # Знак Луны (эклиптическая долгота!)
         moon = ephem.Moon(obs)
-        moon_lon = math.degrees(float(moon.hlong))
+        moon_ecl = ephem.Ecliptic(moon)
+        moon_lon = math.degrees(float(moon_ecl.lon)) % 360
         moon_sign = _lon_to_sign(moon_lon)
 
         # Асцендент — стандартная формула
