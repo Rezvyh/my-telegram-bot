@@ -7,3 +7,4 @@ APScheduler>=3.10
 python-dotenv>=1.0
 requests>=2.31
 timezonefinder
+timezonefinder>=6.0
