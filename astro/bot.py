@@ -1,10 +1,15 @@
 """
+"""
 Telegram-бот для сбора данных пользователей и индивидуальной рассылки.
 Использует python-telegram-bot v20+ (async/await).
 """
 import logging
 import re
 from datetime import datetime
+
+# ── Новые импорты для определения часового пояса ──
+from zoneinfo import ZoneInfo
+from timezonefinder import TimezoneFinder
 
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove, BotCommand
 from telegram.ext import (
