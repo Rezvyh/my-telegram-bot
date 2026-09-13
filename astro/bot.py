@@ -28,8 +28,7 @@ from database import upsert_user, update_user_birth, get_user, set_user_subscrib
 logger = logging.getLogger(__name__)
 
 # ── Состояния диалога ─────────────────────────────────────────────────────────
-BIRTH_DATE, BIRTH_TIME, BIRTH_CITY = range(3)
-
+BIRTH_DATE, BIRTH_TIME, BIRTH_TIMEZONE, BIRTH_CITY = range(4)
 
 # ── Валидация ─────────────────────────────────────────────────────────────────
 
@@ -93,6 +92,30 @@ async def receive_birth_time(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     context.user_data["birth_time"] = text
     await update.message.reply_text(
+        "Укажи <b>часовой пояс</b> места рождения.\n\n"
+        "Например: <code>+3</code> для Москвы, <code>+5</code> для Екатеринбурга, "
+        "<code>+7</code> для Новосибирска, <code>+10</code> для Владивостока.\n\n"
+        "Если не знаешь — введи <code>+3</code> (Москва).",
+        parse_mode="HTML",
+    )
+    return BIRTH_TIMEZONE
+
+
+async def receive_birth_timezone(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    text = update.message.text.strip().replace(" ", "")
+    try:
+        tz_offset = int(text)
+        if not (-12 <= tz_offset <= 14):
+            raise ValueError
+    except ValueError:
+        await update.message.reply_text(
+            "Неверный формат. Введи смещение от UTC в часах, например: <code>+3</code>, <code>-5</code>, <code>+7</code>",
+            parse_mode="HTML",
+        )
+        return BIRTH_TIMEZONE
+
+    context.user_data["birth_timezone"] = tz_offset
+    await update.message.reply_text(
         "Почти готово! Напиши <b>город рождения</b> (на русском или английском):",
         parse_mode="HTML",
     )
@@ -104,6 +127,7 @@ async def receive_birth_city(update: Update, context: ContextTypes.DEFAULT_TYPE)
     city_name = update.message.text.strip()
     bd        = context.user_data["birth_date"]
     bt        = context.user_data["birth_time"]
+    tz        = context.user_data.get("birth_timezone", 3)
 
     await update.message.reply_text("🔭 Вычисляю натальную карту…", reply_markup=ReplyKeyboardRemove())
 
@@ -121,7 +145,7 @@ async def receive_birth_city(update: Update, context: ContextTypes.DEFAULT_TYPE)
         )
 
     # Расчёт натальной карты
-    chart = calculate_natal_chart(bd, bt, lat, lon)
+    chart = calculate_natal_chart(bd, bt, lat, lon, tz_offset=tz)
     sun_sign  = chart["sun_sign"]
     moon_sign = chart["moon_sign"]
     ascendant = chart["ascendant"]
@@ -268,9 +292,10 @@ def build_application() -> Application:
     conv = ConversationHandler(
         entry_points=[CommandHandler("start", cmd_start)],
         states={
-            BIRTH_DATE: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_birth_date)],
-            BIRTH_TIME: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_birth_time)],
-            BIRTH_CITY: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_birth_city)],
+            BIRTH_DATE:     [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_birth_date)],
+            BIRTH_TIME:     [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_birth_time)],
+            BIRTH_TIMEZONE: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_birth_timezone)],
+            BIRTH_CITY:     [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_birth_city)],
         },
         fallbacks=[CommandHandler("cancel", cmd_cancel)],
     )
