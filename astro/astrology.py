@@ -108,6 +108,10 @@ def calculate_natal_chart(
     lat, lon:   координаты места рождения
     """
     try:
+        logger.info("DEBUG: date=%s, time=%s, tz=%s, lat=%s, lon=%s",
+                    birth_date, birth_time, tz_offset, lat, lon)
+        day, month, year = map(int, birth_date.split("."))
+        ...
         day, month, year = map(int, birth_date.split("."))
         hour, minute = map(int, birth_time.split(":"))
 
@@ -155,7 +159,10 @@ def calculate_natal_chart(
             "asc_lon":   round(asc_deg % 30, 1),
         }
     except Exception as e:
-        logger.error("Ошибка расчёта натальной карты: %s", e)
+        import traceback
+        logger.error("ОШИБКА расчёта: %s", e)
+        logger.error("TRACEBACK: %s", traceback.format_exc())
+        sun_sign = get_sun_sign_by_date(birth_date)logger.error("Ошибка расчёта натальной карты: %s", e)
         # Запасной вариант — только знак Солнца по дате
         sun_sign = get_sun_sign_by_date(birth_date)
         return {
