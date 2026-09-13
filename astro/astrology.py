@@ -162,7 +162,8 @@ def calculate_natal_chart(
         import traceback
         logger.error("ОШИБКА расчёта: %s", e)
         logger.error("TRACEBACK: %s", traceback.format_exc())
-        sun_sign = get_sun_sign_by_date(birth_date)logger.error("Ошибка расчёта натальной карты: %s", e)
+        sun_sign = get_sun_sign_by_date(birth_date)
+        logger.error("Ошибка расчёта натальной карты: %s", e)
         # Запасной вариант — только знак Солнца по дате
         sun_sign = get_sun_sign_by_date(birth_date)
         return {
